@@ -108,7 +108,7 @@
       <canvas id="gameCanvas" width="960" height="540"></canvas>
 
       <!-- スタート画面 -->
-      <div id="startScreen" class="overlay">
+      <div id="startScreen" class="overlay" style="display: flex; align-items: center; justify-content: center;">
         <div class="content">
           <h2>陣取りゲームへようこそ！</h2>
           <p>ステージを選択してください：</p>
@@ -412,7 +412,7 @@
     //   初期化関数
     // ======================
     function initGame() {
-      startScreen.style.display = 'block';
+      startScreen.style.display = 'flex';
       giveUpButton.style.display = 'none';
       giveUpButton.textContent = 'Give Up';
       giveUpButton.style.backgroundColor = '';
@@ -423,18 +423,27 @@
     //   ステージ選択
     // ======================
     stageButtons.forEach(button => {
+      // タッチイベント
       button.addEventListener('touchend', (e) => {
         e.preventDefault(); // スマホでのダブルタップズームなど防止
         const selectedStage = parseInt(button.getAttribute('data-stage'), 10);
         startScreen.style.display = 'none';
         startStage(selectedStage);
       }, { passive: false });
+
+      // クリックイベント
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const selectedStage = parseInt(button.getAttribute('data-stage'), 10);
+        startScreen.style.display = 'none';
+        startStage(selectedStage);
+      });
     });
 
     // ======================
     //   Give Up ボタン
     // ======================
-    giveUpButton.addEventListener('touchend', (e) => {
+    function handleGiveUp(e) {
       e.preventDefault();
       if (giveUpState === 'giveUp') {
         giveUpButton.textContent = 'Restart';
@@ -446,7 +455,14 @@
         giveUpState = 'giveUp';
         startStage(currentStage);
       }
-    }, { passive: false });
+    }
+
+    giveUpButton.addEventListener('touchend', handleGiveUp, { passive: false });
+    giveUpButton.addEventListener('click', (e) => {
+      if (e.type === 'click') {
+        handleGiveUp(e);
+      }
+    });
 
     // ======================
     //   ステージ開始
@@ -577,26 +593,25 @@
     }
 
     // ======================
+    //   タッチ位置をキャンバス座標に変換
+    // ======================
+    function getCanvasCoordinates(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+      const xOffset = (rect.width - canvas.width * scale) / 2;
+      const yOffset = (rect.height - canvas.height * scale) / 2;
+      const x = (clientX - rect.left - xOffset) / scale;
+      const y = (clientY - rect.top - yOffset) / scale;
+      return { x, y };
+    }
+
+    // ======================
     //   タッチ処理
     // ======================
-    canvas.addEventListener('touchstart', function(e) {
-      // タッチ時にスクロールしないように
-      e.preventDefault();
-    }, { passive: false });
-
-    canvas.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      // シングルタッチ想定
-      if (e.changedTouches.length === 0) return;
-      const touch = e.changedTouches[0];
-
-      const rect = canvas.getBoundingClientRect();
-      const tapX = touch.clientX - rect.left;
-      const tapY = touch.clientY - rect.top;
-
+    function handleCanvasInteraction(x, y) {
       const clickedArea = areas.find(area => {
-        const dx = area.x - tapX;
-        const dy = area.y - tapY;
+        const dx = area.x - x;
+        const dy = area.y - y;
         return Math.sqrt(dx * dx + dy * dy) < AREA_RADIUS;
       });
 
@@ -622,7 +637,28 @@
         selectedArea = null;
         drawAreas();
       }
+    }
+
+    canvas.addEventListener('touchstart', function(e) {
+      // タッチ時にスクロールしないように
+      e.preventDefault();
     }, { passive: false });
+
+    canvas.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      // シングルタッチ想定
+      if (e.changedTouches.length === 0) return;
+      const touch = e.changedTouches[0];
+
+      const coords = getCanvasCoordinates(touch.clientX, touch.clientY);
+      handleCanvasInteraction(coords.x, coords.y);
+    }, { passive: false });
+
+    // クリックイベントの追加
+    canvas.addEventListener('click', function(e) {
+      const coords = getCanvasCoordinates(e.clientX, e.clientY);
+      handleCanvasInteraction(coords.x, coords.y);
+    });
 
     // ======================
     //   ウイルス移動 → 攻撃ブロック
@@ -638,7 +674,7 @@
       );
       if (playerBlocksOnRoute.length >= 3) return;
 
-      const movingVirus = fromArea.virusCount;
+      const movingVirus = Math.floor(fromArea.virusCount / 2); // 移動するウイルス数を半分に変更
       if (movingVirus <= 0) return;
       fromArea.virusCount -= movingVirus;
 
@@ -798,7 +834,8 @@
           );
           if (enemyBlocksOnRoute.length >= 3) return;
 
-          const movingVirus = area.virusCount;
+          const movingVirus = Math.floor(area.virusCount / 2); // 移動するウイルス数を半分に変更
+          if (movingVirus <= 0) return;
           area.virusCount -= movingVirus;
           createAttackBlock(area, targetArea, movingVirus, 'enemy');
         }
@@ -867,11 +904,23 @@
       startStage(currentStage);
     }, { passive: false });
 
+    retryLevelButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      levelCompleteOverlay.style.display = 'none';
+      startStage(currentStage);
+    });
+
     nextLevelButton.addEventListener('touchend', (e) => {
       e.preventDefault();
       levelCompleteOverlay.style.display = 'none';
       startStage(currentStage + 1);
     }, { passive: false });
+
+    nextLevelButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      levelCompleteOverlay.style.display = 'none';
+      startStage(currentStage + 1);
+    });
 
     restartButton.addEventListener('touchend', (e) => {
       e.preventDefault();
@@ -879,11 +928,23 @@
       initGame();
     }, { passive: false });
 
+    restartButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      gameOverOverlay.style.display = 'none';
+      initGame();
+    });
+
     retryButton.addEventListener('touchend', (e) => {
       e.preventDefault();
       gameOverOverlay.style.display = 'none';
       startStage(currentStage);
     }, { passive: false });
+
+    retryButton.addEventListener('click', (e) => {
+      e.preventDefault();
+      gameOverOverlay.style.display = 'none';
+      startStage(currentStage);
+    });
 
     // ゲーム開始
     initGame();
