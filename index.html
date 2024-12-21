@@ -783,4 +783,260 @@
     // ======================
     function createAttackBlock(from, to, virusCount, owner) {
       const dx = to.x - from.x;
-      const dy = to.y - from.
+      const dy = to.y - from.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 2*AREA_RADIUS) return; // 重なりor同位置
+
+      const ux = dx / dist;
+      const uy = dy / dist;
+      const startX = from.x + AREA_RADIUS * ux;
+      const startY = from.y + AREA_RADIUS * uy;
+      const endX = to.x - AREA_RADIUS * ux;
+      const endY = to.y - AREA_RADIUS * uy;
+      const totalDist = Math.sqrt((endX - startX)**2 + (endY - startY)**2);
+
+      attackBlocks.push({
+        owner,
+        virusCount,
+        fromArea: from,
+        toArea: to,
+        x: startX,
+        y: startY,
+        dx: ux,
+        dy: uy,
+        totalDistance: totalDist,
+        distanceTraveled: 0,
+        speed: ATTACK_BLOCK_SPEED,
+      });
+    }
+
+    // ======================
+    //   攻撃ブロック更新
+    // ======================
+    function updateAttackBlocks() {
+      for (let i=0; i<attackBlocks.length; i++){
+        const b = attackBlocks[i];
+        b.distanceTraveled += b.speed;
+        b.x += b.dx * b.speed;
+        b.y += b.dy * b.speed;
+
+        // ブロック同士の衝突
+        for (let j=i+1; j<attackBlocks.length; j++){
+          const o = attackBlocks[j];
+          // 同一 or 逆経路
+          const samePath = 
+            (b.fromArea.id===o.fromArea.id && b.toArea.id===o.toArea.id) ||
+            (b.fromArea.id===o.toArea.id && b.toArea.id===o.fromArea.id);
+          if (!samePath) continue;
+          if (b.owner !== o.owner) {
+            const dx = b.x - o.x;
+            const dy = b.y - o.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < AREA_RADIUS * 0.6) { 
+              // お互いの数を比較
+              if (b.virusCount > o.virusCount) {
+                b.virusCount -= o.virusCount;
+                attackBlocks.splice(j,1);
+                j--;
+              } else if (b.virusCount < o.virusCount) {
+                o.virusCount -= b.virusCount;
+                attackBlocks.splice(i,1);
+                i--;
+                break;
+              } else {
+                // 同数
+                attackBlocks.splice(j,1);
+                attackBlocks.splice(i,1);
+                i--;
+                break;
+              }
+            }
+          }
+        }
+
+        // ターゲット到達
+        const distToTarget = Math.sqrt(
+          (b.x - b.toArea.x)**2 + (b.y - b.toArea.y)**2
+        );
+        if (distToTarget <= AREA_RADIUS || b.distanceTraveled >= b.totalDistance) {
+          const to = b.toArea;
+          const amt = b.virusCount;
+
+          if (to.owner === b.owner) {
+            to.virusCount += amt;
+            if (to.virusCount > MAX_VIRUS_COUNT) {
+              to.virusCount = MAX_VIRUS_COUNT;
+            }
+          } else if (to.owner === 'neutral') {
+            if (amt > to.virusCount) {
+              to.owner = b.owner;
+              to.virusCount = amt - to.virusCount;
+            } else if (amt=== to.virusCount) {
+              to.owner = 'neutral';
+              to.virusCount=0;
+            } else {
+              to.virusCount-= amt;
+            }
+          } else {
+            // 敵領地
+            if (amt > to.virusCount) {
+              to.owner= b.owner;
+              to.virusCount= amt - to.virusCount;
+            } else if (amt===to.virusCount) {
+              to.owner='neutral';
+              to.virusCount=0;
+            } else {
+              to.virusCount-= amt;
+            }
+          }
+          if (to.virusCount>MAX_VIRUS_COUNT) {
+            to.virusCount=MAX_VIRUS_COUNT;
+          }
+          attackBlocks.splice(i,1);
+          i--;
+        }
+      }
+    }
+
+    // ======================
+    //   敵の行動
+    // ======================
+    function enemyAction() {
+      const enemies = areas.filter(a => a.owner==='enemy' && a.virusCount>0);
+      enemies.forEach(ea => {
+        const neigh = connections
+          .filter(c => c.includes(ea.id))
+          .map(c => (c[0]===ea.id?c[1]:c[0]))
+          .map(id => areas.find(a => a.id===id));
+        if (!neigh.length) return;
+
+        let tgt;
+        if (currentStage<=5) {
+          // ランダム
+          tgt= neigh[Math.floor(Math.random()*neigh.length)];
+        } else {
+          // プレイヤーを優先
+          const playerN = neigh.filter(a=>a.owner==='player');
+          if (playerN.length>0) {
+            tgt= playerN.reduce((m,a)=>(a.virusCount<m.virusCount? a:m), playerN[0]);
+          } else {
+            tgt= neigh[Math.floor(Math.random()*neigh.length)];
+          }
+        }
+        if (tgt && ea.virusCount>0){
+          const blocksSameRoute = attackBlocks.filter(b=>
+            b.owner==='enemy' && b.fromArea.id===ea.id && b.toArea.id===tgt.id
+          );
+          if (blocksSameRoute.length>=3) return;
+          const amt= ea.virusCount;
+          ea.virusCount-=amt;
+          createAttackBlock(ea, tgt, amt, 'enemy');
+        }
+      });
+    }
+
+    // ======================
+    //   勝敗判定
+    // ======================
+    function checkGameStatus() {
+      const playerOwned= areas.filter(a=>a.owner==='player').length;
+      const total= areas.length;
+      if (!total) return;
+      if (playerOwned===0){
+        clearInterval(gameInterval);
+        attackBlocks=[];
+        gameOverOverlay.style.display='flex';
+      } else if (playerOwned=== total){
+        clearInterval(gameInterval);
+        attackBlocks=[];
+        levelCompleteOverlay.style.display='flex';
+      }
+    }
+
+    // ======================
+    //   ゲームループ
+    // ======================
+    function gameLoop() {
+      virusGrowthCounter+=50;
+      enemyActionCounter+=50;
+      if(virusGrowthCounter>=1000){
+        increaseVirusCounts();
+        virusGrowthCounter=0;
+      }
+      if(enemyActionCounter>=1000 && currentStage!==0){
+        enemyAction();
+        enemyActionCounter=0;
+      }
+      updateAttackBlocks();
+      checkGameStatus();
+      drawAreas();
+    }
+
+    // ======================
+    //   ウイルス増殖
+    // ======================
+    function increaseVirusCounts() {
+      areas.forEach(a=>{
+        if(a.owner!=='neutral'){
+          a.virusCount+= a.growthRate;
+          if(a.virusCount>MAX_VIRUS_COUNT){
+            a.virusCount=MAX_VIRUS_COUNT;
+          }
+        }
+      });
+    }
+
+    // ======================
+    //   イベント設定
+    // ======================
+    retryLevelButton.addEventListener('click', e=>{
+      e.preventDefault();
+      levelCompleteOverlay.style.display='none';
+      startStage(currentStage);
+    });
+    retryLevelButton.addEventListener('touchend', e=>{
+      e.preventDefault();
+      levelCompleteOverlay.style.display='none';
+      startStage(currentStage);
+    },{passive:false});
+
+    nextLevelButton.addEventListener('click', e=>{
+      e.preventDefault();
+      levelCompleteOverlay.style.display='none';
+      startStage(currentStage+1);
+    });
+    nextLevelButton.addEventListener('touchend', e=>{
+      e.preventDefault();
+      levelCompleteOverlay.style.display='none';
+      startStage(currentStage+1);
+    },{passive:false});
+
+    restartButton.addEventListener('click', e=>{
+      e.preventDefault();
+      gameOverOverlay.style.display='none';
+      initGame();
+    });
+    restartButton.addEventListener('touchend', e=>{
+      e.preventDefault();
+      gameOverOverlay.style.display='none';
+      initGame();
+    },{passive:false});
+
+    retryButton.addEventListener('click', e=>{
+      e.preventDefault();
+      gameOverOverlay.style.display='none';
+      startStage(currentStage);
+    });
+    retryButton.addEventListener('touchend', e=>{
+      e.preventDefault();
+      gameOverOverlay.style.display='none';
+      startStage(currentStage);
+    },{passive:false});
+
+    window.addEventListener('load', ()=>{
+      initGame();
+      drawAreas();
+    });
+  </script>
+</body>
+</html>
