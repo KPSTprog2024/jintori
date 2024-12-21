@@ -12,25 +12,22 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      /* 高さは必要に応じて可変 */
       min-height: 100%;
       box-sizing: border-box;
       background-color: #f0f0f0;
       font-family: sans-serif;
-      /* スクロールを可能にするため overflow: hidden; は使わない */
+      /* スクロールを可能に */
       overflow: auto;
     }
 
-    /* メインコンテナ: 通常の相対配置にし、ページスクロールを阻害しない */
+    /* メインコンテナ: ページ内レイアウト */
     #mainContainer {
       position: relative;
       width: 100%;
-      /* 高さは可変とし、コンテンツが増えればスクロールできる */
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      /* 上下に余白を少しとる */
       padding: 20px 0;
     }
 
@@ -38,17 +35,16 @@
     #gameContainer {
       position: relative;
       width: 100%;
-      max-width: 960px; /* ゲームキャンバスが16:9なので960px幅に */
-      /* 高さは自動調整に */
+      max-width: 450px; /* 9:19.5 の横幅(内部解像度450)に合わせる */
       margin: 0 auto;
       overflow: visible;
     }
 
-    /* キャンバス: アスペクト比16:9, 内部解像度 960×540 */
+    /* キャンバス: 9:19.5, 内部解像度 450×975 */
     #gameCanvas {
       display: block;
       width: 100%;
-      height: auto; /* アスペクト比を保ちつつ、自動高さ */
+      height: auto; /* アスペクト比維持 */
       background-color: #fff;
       border: 1px solid #ccc;
       object-fit: contain;
@@ -73,8 +69,8 @@
     .content {
       position: relative;
       width: 80%;
-      max-width: 600px; 
-      margin: 0 auto; 
+      max-width: 400px;
+      margin: 0 auto;
       text-align: center;
       color: #fff;
     }
@@ -82,7 +78,7 @@
     button {
       padding: 10px 20px;
       margin: 10px;
-      font-size: 1.0rem;
+      font-size: 1rem;
       cursor: pointer;
       border: none;
       border-radius: 5px;
@@ -90,7 +86,6 @@
       color: #fff;
       transition: background-color 0.3s;
     }
-
     button:hover {
       background-color: #0056b3;
     }
@@ -109,11 +104,9 @@
       color: #fff;
       transition: background-color 0.3s;
     }
-
     #giveUpButton.restart {
       background-color: #28a745;
     }
-
     #giveUpButton:hover {
       background-color: #c82333;
     }
@@ -140,11 +133,10 @@
   </style>
 </head>
 <body>
-  <!-- メインコンテナ（画面のスクロールを可能に） -->
   <div id="mainContainer">
     <div id="gameContainer">
-      <!-- キャンバス: 内部解像度 960×540(16:9) -->
-      <canvas id="gameCanvas" width="960" height="540"></canvas>
+      <!-- キャンバス: 内部解像度 450×975 (9:19.5) -->
+      <canvas id="gameCanvas" width="450" height="975"></canvas>
 
       <!-- スタート画面 -->
       <div id="startScreen" class="overlay">
@@ -194,7 +186,7 @@
        ========  ステージデータ  =======
        ========================= */
     const stages = [
-      // index 0 → 「ステージ1: チュートリアル」
+      // --- 以下、ステージ1~10のデータ ---
       {
         areas: [
           { id: 1, x: 200, y: 270, owner: 'player', virusCount: 10, growthRate: 1 },
@@ -209,7 +201,7 @@
           [3, 4],
         ],
       },
-      // 以降ステージ2〜10 …（省略せず全て配置済み）
+      // ステージ2: 左寄り修正は後で行うので一旦データそのまま
       {
         areas: [
           { id: 1, x: 100, y: 270, owner: 'player', virusCount: 10, growthRate: 1 },
@@ -231,6 +223,7 @@
           [6, 7],
         ],
       },
+      // ステージ3
       {
         areas: [
           { id: 1, x: 100, y: 100, owner: 'player', virusCount: 15, growthRate: 1 },
@@ -253,6 +246,7 @@
           [6, 7],
         ],
       },
+      // ステージ4
       {
         areas: [
           { id: 1, x: 480, y:  40, owner: 'neutral', virusCount: 5, growthRate: 2 },
@@ -276,6 +270,7 @@
           [7, 8],
         ],
       },
+      // ステージ5
       {
         areas: [
           { id: 1, x: 120, y: 270, owner: 'player', virusCount: 20, growthRate: 1 },
@@ -297,6 +292,7 @@
           [6, 7],
         ],
       },
+      // ステージ6
       {
         areas: [
           { id: 1, x: 480, y:  40, owner: 'player', virusCount: 20, growthRate: 1 },
@@ -315,6 +311,7 @@
           [4, 6],
         ],
       },
+      // ステージ7
       {
         areas: [
           { id: 1, x: 100, y: 100, owner: 'player', virusCount: 35, growthRate: 2 },
@@ -334,6 +331,7 @@
           [5, 7],
         ],
       },
+      // ステージ8
       {
         areas: [
           { id: 1, x: 480, y:  40, owner: 'player', virusCount: 40, growthRate: 1 },
@@ -354,6 +352,7 @@
           [4, 5],
         ],
       },
+      // ステージ9
       {
         areas: [
           { id: 1, x: 100, y: 270, owner: 'player', virusCount: 25, growthRate: 1 },
@@ -377,6 +376,7 @@
           [3, 6],
         ],
       },
+      // ステージ10
       {
         areas: [
           { id: 1, x: 480, y:  40, owner: 'player', virusCount: 40, growthRate: 1 },
@@ -403,11 +403,10 @@
        ========  ゲーム本体  =======
        ========================= */
 
-    // キャンバス・コンテキスト
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    // オーバーレイ取得
+    // オーバーレイ要素
     const startScreen = document.getElementById('startScreen');
     const levelCompleteOverlay = document.getElementById('levelComplete');
     const nextLevelButton = document.getElementById('nextLevelButton');
@@ -426,25 +425,20 @@
     let selectedArea = null;
     let gameInterval;
 
-    // 攻撃ブロック管理
+    // 攻撃ブロック配列
     let attackBlocks = [];
 
-    // エリアの半径（固定値）
-    const AREA_RADIUS = 50;
+    // 半径はデフォルト 50
+    let AREA_RADIUS = 50;
 
-    // ウイルス増殖と敵行動カウンター
+    const MAX_VIRUS_COUNT = 40;
+    const ATTACK_BLOCK_SPEED = 2;
     let virusGrowthCounter = 0;
     let enemyActionCounter = 0;
 
-    // 攻撃ブロック移動速度
-    const ATTACK_BLOCK_SPEED = 2;
-
-    // ウイルス数上限
-    const MAX_VIRUS_COUNT = 40;
-
-    // Give Up ボタン
+    // GiveUpボタン
     const giveUpButton = document.getElementById('giveUpButton');
-    let giveUpState = 'giveUp'; // 'giveUp' or 'restart'
+    let giveUpState = 'giveUp';
 
     // ======================
     //   初期化
@@ -463,26 +457,23 @@
     // ======================
     //   ステージ選択
     // ======================
-    function handleStageSelect(stageNumber) {
+    function handleStageSelect(num) {
       startScreen.style.display = 'none';
-      startStage(stageNumber);
+      startStage(num);
     }
-
-    stageButtons.forEach(button => {
-      // タッチ
-      button.addEventListener('touchend', (e) => {
+    stageButtons.forEach(btn => {
+      btn.addEventListener('click', e => {
         e.preventDefault();
-        handleStageSelect(parseInt(button.getAttribute('data-stage'), 10));
-      }, { passive: false });
-      // クリック
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        handleStageSelect(parseInt(button.getAttribute('data-stage'), 10));
+        handleStageSelect(parseInt(btn.dataset.stage, 10));
       });
+      btn.addEventListener('touchend', e => {
+        e.preventDefault();
+        handleStageSelect(parseInt(btn.dataset.stage, 10));
+      }, { passive: false });
     });
 
     // ======================
-    //   Give Up ボタン
+    //   Give Up
     // ======================
     function handleGiveUp(e) {
       e.preventDefault();
@@ -497,9 +488,8 @@
         startStage(currentStage);
       }
     }
-
-    giveUpButton.addEventListener('touchend', handleGiveUp, { passive: false });
     giveUpButton.addEventListener('click', handleGiveUp);
+    giveUpButton.addEventListener('touchend', handleGiveUp, { passive: false });
 
     // ======================
     //   ステージ開始
@@ -508,15 +498,18 @@
       currentStage = stageNumber;
       attackBlocks = [];
       setupStage(stageNumber);
+
+      // ステージ全体を中央寄せしつつ、20%縮める & 半径調整
+      normalizePositions(areas, canvas.width, canvas.height);
+      // 攻撃ブロックやステージの表示
       drawAreas();
 
       if (gameInterval) clearInterval(gameInterval);
       virusGrowthCounter = 0;
       enemyActionCounter = 0;
-      // 50msごとに更新 (20fps)
+
       gameInterval = setInterval(gameLoop, 50);
 
-      // Give Up表示
       giveUpButton.style.display = 'block';
       giveUpButton.textContent = 'Give Up';
       giveUpButton.classList.remove('restart');
@@ -524,20 +517,90 @@
     }
 
     // ======================
-    //   ステージ設定
+    //   ステージセットアップ
     // ======================
-    function setupStage(stageNumber) {
-      const index = stageNumber - 1;
+    function setupStage(num) {
+      const index = num - 1;
       if (index >= 0 && index < stages.length) {
-        const stageData = stages[index];
-        areas = stageData.areas.map(a => ({ ...a }));
-        connections = stageData.connections.map(c => [...c]);
+        const st = stages[index];
+        areas = st.areas.map(a => ({ ...a }));
+        connections = st.connections.map(c => [...c]);
       } else {
-        // もしステージ11以降を作るならここでランダム生成等
+        // もしステージ11以降をランダム生成するならここ
         areas = [];
         connections = [];
       }
       selectedArea = null;
+    }
+
+    // ======================
+    //   座標の中央寄せ & スケーリング
+    // ======================
+    function normalizePositions(areas, w, h) {
+      if (!areas.length) return;
+
+      // 1) bounding box を取得
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+      for (const a of areas) {
+        if (a.x < minX) minX = a.x;
+        if (a.x > maxX) maxX = a.x;
+        if (a.y < minY) minY = a.y;
+        if (a.y > maxY) maxY = a.y;
+      }
+      let boxW = maxX - minX;
+      let boxH = maxY - minY;
+      if (boxW <= 0) boxW = 1; 
+      if (boxH <= 0) boxH = 1;
+
+      // 2) 全体をキャンバス内に収めるスケールを計算（上下左右に少しマージン）
+      const margin = 50; // 余白
+      const scaleX = (w - margin*2) / boxW;
+      const scaleY = (h - margin*2) / boxH;
+      let scale = Math.min(scaleX, scaleY);
+
+      // 3) ステージ全体を20%近づける => scale *= 0.8
+      scale *= 0.8;
+
+      // 4) 平均座標をキャンバス中央付近へ
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
+      const targetCenterX = w / 2;
+      const targetCenterY = h / 2;
+
+      // 5) 各点を (中心基準) -> スケール -> canvas中央へ移動
+      for (const a of areas) {
+        const dx = a.x - centerX;
+        const dy = a.y - centerY;
+        a.x = targetCenterX + dx * scale;
+        a.y = targetCenterY + dy * scale;
+      }
+
+      // 6) 重なり防止のための動的半径調整
+      AREA_RADIUS = calcAreaRadius(areas, 50); 
+    }
+
+    // ======================
+    //   エリア重なりを防ぐ半径を計算
+    // ======================
+    function calcAreaRadius(areas, baseRadius) {
+      if (areas.length <= 1) return baseRadius;
+      // すべてのペアについて、2*radius <= distance になるように。
+      // 最小の distance/2 * 0.9 (少し余裕) を返す
+      let minDist = Infinity;
+      for (let i=0; i<areas.length; i++){
+        for (let j=i+1; j<areas.length; j++){
+          const dx = areas[j].x - areas[i].x;
+          const dy = areas[j].y - areas[i].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < minDist) {
+            minDist = dist;
+          }
+        }
+      }
+      // 重ならないための最大半径
+      const noOverlapRadius = minDist / 2 * 0.9;
+      return Math.min(baseRadius, Math.max(10, noOverlapRadius));
     }
 
     // ======================
@@ -546,40 +609,31 @@
     function drawAreas() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // ステージ番号：上中央に表示
+      // ステージ番号を上中央に
       ctx.fillStyle = 'black';
       ctx.font = '24px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.fillText(`ステージ ${currentStage}`, canvas.width / 2, 10);
 
-      // エリア間の線（20%短く）
+      // 接続線（円の外縁どうしが接するように）
       connections.forEach(conn => {
-        const area1 = areas.find(a => a.id === conn[0]);
-        const area2 = areas.find(a => a.id === conn[1]);
-        if (!area1 || !area2) return;
+        const a1 = areas.find(a => a.id === conn[0]);
+        const a2 = areas.find(a => a.id === conn[1]);
+        if (!a1 || !a2) return;
 
-        // 中心間の距離
-        const dx = area2.x - area1.x;
-        const dy = area2.y - area1.y;
-        const distance = Math.sqrt(dx*dx + dy*dy);
-
-        // 線の長さは (distance - 2*AREA_RADIUS)
-        // →20%短くする → 80%にする  => newLineDist = (distance - 2*AREA_RADIUS)*0.8
-        // → 端から (AREA_RADIUS + shortenHalf) だけ進んだ位置に始点を置く
-        const lineDistance = distance - 2 * AREA_RADIUS;
-        if (lineDistance <= 0) return; // エリアが重なる等の場合は描画しない
-
-        const newLineDist = lineDistance * 0.8; // 80%化
-        const shortenTotal = lineDistance - newLineDist; // 20%分
-        const shortenHalf = shortenTotal / 2;            // 両端を10%ずつ
+        // 中心距離
+        const dx = a2.x - a1.x;
+        const dy = a2.y - a1.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist <= 2*AREA_RADIUS) return; // エリアが重なるか同じ場所→線は描かない
 
         const angle = Math.atan2(dy, dx);
 
-        const x1 = area1.x + (AREA_RADIUS + shortenHalf) * Math.cos(angle);
-        const y1 = area1.y + (AREA_RADIUS + shortenHalf) * Math.sin(angle);
-        const x2 = area2.x - (AREA_RADIUS + shortenHalf) * Math.cos(angle);
-        const y2 = area2.y - (AREA_RADIUS + shortenHalf) * Math.sin(angle);
+        const x1 = a1.x + AREA_RADIUS * Math.cos(angle);
+        const y1 = a1.y + AREA_RADIUS * Math.sin(angle);
+        const x2 = a2.x - AREA_RADIUS * Math.cos(angle);
+        const y2 = a2.y - AREA_RADIUS * Math.sin(angle);
 
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -592,7 +646,7 @@
       // 攻撃ブロック
       attackBlocks.forEach(block => {
         ctx.beginPath();
-        ctx.arc(block.x, block.y, 12, 0, Math.PI * 2);
+        ctx.arc(block.x, block.y, AREA_RADIUS * 0.3, 0, Math.PI*2);
         ctx.fillStyle = (block.owner === 'player') ? 'red' : 'orange';
         ctx.fill();
 
@@ -604,83 +658,77 @@
       });
 
       // エリア
-      areas.forEach(area => {
+      areas.forEach(ar => {
         ctx.beginPath();
-        ctx.arc(area.x, area.y, AREA_RADIUS, 0, Math.PI * 2);
+        ctx.arc(ar.x, ar.y, AREA_RADIUS, 0, Math.PI*2);
         ctx.fillStyle =
-          (area.owner === 'player') ? 'red' :
-          (area.owner === 'enemy') ? 'orange' : 'white';
+          (ar.owner === 'player') ? 'red' :
+          (ar.owner === 'enemy') ? 'orange' : 'white';
         ctx.fill();
 
-        // 選択エリア＆隣接エリアの強調
-        let lineWidth = 1;
-        let strokeStyle = 'black';
-        if (selectedArea === area) {
-          lineWidth = 5;
-          strokeStyle = 'darkred';
-        } else if (selectedArea && isNeighbor(selectedArea, area)) {
-          lineWidth = 5;
-          strokeStyle = 'darkblue';
+        let lw = 1;
+        let stk = 'black';
+        if (selectedArea === ar) {
+          lw = 5;
+          stk = 'darkred';
+        } else if (selectedArea && isNeighbor(selectedArea, ar)) {
+          lw = 5;
+          stk = 'darkblue';
         }
-
-        ctx.lineWidth = lineWidth;
-        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = stk;
         ctx.stroke();
 
-        // ウイルス数と増殖率
+        // ウイルス数 & 増殖率
         ctx.fillStyle = 'black';
         ctx.font = '18px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(area.virusCount, area.x, area.y);
-        ctx.fillText(`×${area.growthRate}`, area.x, area.y + 25);
+        ctx.fillText(ar.virusCount, ar.x, ar.y);
+        ctx.fillText(`×${ar.growthRate}`, ar.x, ar.y + 25);
       });
     }
 
     // ======================
     //   隣接判定
     // ======================
-    function isNeighbor(fromArea, toArea) {
-      return connections.some(conn =>
-        (conn[0] === fromArea.id && conn[1] === toArea.id) ||
-        (conn[1] === fromArea.id && conn[0] === toArea.id)
+    function isNeighbor(a1, a2) {
+      return connections.some(c =>
+        (c[0] === a1.id && c[1] === a2.id) ||
+        (c[1] === a1.id && c[0] === a2.id)
       );
     }
 
     // ======================
-    //   座標変換
+    //   座標変換 (タップ/クリック)
     // ======================
-    function getCanvasCoordinates(clientX, clientY) {
+    function getCanvasCoordinates(cx, cy) {
       const rect = canvas.getBoundingClientRect();
       const scaleX = canvas.width / rect.width;
       const scaleY = canvas.height / rect.height;
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top)  * scaleY,
+        x: (cx - rect.left) * scaleX,
+        y: (cy - rect.top)  * scaleY,
       };
     }
 
-    // ======================
-    //   タッチ/クリック処理
-    // ======================
-    function handleCanvasTap(x, y) {
-      const clickedArea = areas.find(area => {
-        const dx = area.x - x;
-        const dy = area.y - y;
+    function handleTap(x, y) {
+      const clicked = areas.find(a => {
+        const dx = a.x - x;
+        const dy = a.y - y;
         return Math.sqrt(dx*dx + dy*dy) < AREA_RADIUS;
       });
-
-      if (clickedArea) {
+      if (clicked) {
         if (!selectedArea) {
-          // 自エリア選択
-          if (clickedArea.owner === 'player' && clickedArea.virusCount > 0) {
-            selectedArea = clickedArea;
+          // 自エリア
+          if (clicked.owner === 'player' && clicked.virusCount > 0) {
+            selectedArea = clicked;
             drawAreas();
           }
         } else {
-          // 隣接ならウイルス移動
-          if (isNeighbor(selectedArea, clickedArea)) {
-            moveVirus(selectedArea.id, clickedArea.id);
+          // 移動先
+          if (isNeighbor(selectedArea, clicked)) {
+            moveVirus(selectedArea.id, clicked.id);
             selectedArea = null;
             drawAreas();
           } else {
@@ -694,308 +742,45 @@
       }
     }
 
-    // スマホ用タッチ
-    canvas.addEventListener('touchend', (e) => {
+    // タッチ
+    canvas.addEventListener('touchend', e => {
       e.preventDefault();
       if (e.changedTouches.length === 0) return;
-      const touch = e.changedTouches[0];
-      const { x, y } = getCanvasCoordinates(touch.clientX, touch.clientY);
-      handleCanvasTap(x, y);
+      const t = e.changedTouches[0];
+      const { x, y } = getCanvasCoordinates(t.clientX, t.clientY);
+      handleTap(x, y);
     }, { passive: false });
 
-    // PC用クリック
-    canvas.addEventListener('click', (e) => {
+    // クリック
+    canvas.addEventListener('click', e => {
       const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
-      handleCanvasTap(x, y);
+      handleTap(x, y);
     });
 
     // ======================
     //   ウイルス移動
     // ======================
-    function moveVirus(fromId, toId) {
-      const fromArea = areas.find(a => a.id === fromId);
-      const toArea = areas.find(a => a.id === toId);
-      if (!fromArea || !toArea) return;
-      if (fromArea.owner !== 'player') return;
+    function moveVirus(fid, tid) {
+      const f = areas.find(a => a.id === fid);
+      const t = areas.find(a => a.id === tid);
+      if (!f || !t) return;
+      if (f.owner !== 'player') return;
 
-      // 同じルートに自ブロックが3つあると出せない
-      const playerBlocksOnRoute = attackBlocks.filter(
-        b => b.owner === 'player' && b.fromArea.id === fromArea.id && b.toArea.id === toArea.id
+      const existingBlocks = attackBlocks.filter(b => 
+        b.owner === 'player' && b.fromArea.id === f.id && b.toArea.id === t.id
       );
-      if (playerBlocksOnRoute.length >= 3) return;
+      if (existingBlocks.length >= 3) return;
 
-      const movingVirus = fromArea.virusCount; // 全量移動
-      if (movingVirus <= 0) return;
-      fromArea.virusCount -= movingVirus;
+      const amount = f.virusCount;
+      if (amount <= 0) return;
+      f.virusCount -= amount;
 
-      createAttackBlock(fromArea, toArea, movingVirus, 'player');
+      createAttackBlock(f, t, amount, 'player');
     }
 
     // ======================
-    //   攻撃ブロック生成
+    //   攻撃ブロック作成
     // ======================
-    function createAttackBlock(fromArea, toArea, virusCount, owner) {
-      const dx = toArea.x - fromArea.x;
-      const dy = toArea.y - fromArea.y;
-      const distance = Math.sqrt(dx*dx + dy*dy);
-      const unitX = dx / distance;
-      const unitY = dy / distance;
-
-      // エリア外縁からスタート
-      const startX = fromArea.x + AREA_RADIUS * unitX;
-      const startY = fromArea.y + AREA_RADIUS * unitY;
-      const endX = toArea.x - AREA_RADIUS * unitX;
-      const endY = toArea.y - AREA_RADIUS * unitY;
-      const totalDistance = Math.sqrt((endX - startX)**2 + (endY - startY)**2);
-
-      attackBlocks.push({
-        owner,
-        virusCount,
-        fromArea,
-        toArea,
-        x: startX,
-        y: startY,
-        dx: unitX,
-        dy: unitY,
-        totalDistance,
-        distanceTraveled: 0,
-        speed: ATTACK_BLOCK_SPEED,
-      });
-    }
-
-    // ======================
-    //   攻撃ブロック更新
-    // ======================
-    function updateAttackBlocks() {
-      for (let i = 0; i < attackBlocks.length; i++) {
-        const block = attackBlocks[i];
-        block.distanceTraveled += block.speed;
-        block.x += block.dx * block.speed;
-        block.y += block.dy * block.speed;
-
-        // 攻撃ブロック同士の衝突
-        for (let j = i + 1; j < attackBlocks.length; j++) {
-          const other = attackBlocks[j];
-          const samePath =
-            (block.fromArea.id === other.fromArea.id && block.toArea.id === other.toArea.id) ||
-            (block.fromArea.id === other.toArea.id && block.toArea.id === other.fromArea.id);
-          if (!samePath) continue;
-
-          // 異なる所有者なら衝突判定
-          if (block.owner !== other.owner) {
-            const dx = block.x - other.x;
-            const dy = block.y - other.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 24) {
-              // 多いほうが生き残り、同数なら相殺
-              if (block.virusCount > other.virusCount) {
-                block.virusCount -= other.virusCount;
-                attackBlocks.splice(j, 1);
-                j--;
-              } else if (block.virusCount < other.virusCount) {
-                other.virusCount -= block.virusCount;
-                attackBlocks.splice(i, 1);
-                i--;
-                break;
-              } else {
-                attackBlocks.splice(j, 1);
-                attackBlocks.splice(i, 1);
-                i--;
-                break;
-              }
-            }
-          }
-        }
-
-        // ターゲットエリア到達
-        const distTarget = Math.sqrt((block.x - block.toArea.x)**2 + (block.y - block.toArea.y)**2);
-        if (distTarget <= AREA_RADIUS || block.distanceTraveled >= block.totalDistance) {
-          const toArea = block.toArea;
-          const mv = block.virusCount;
-
-          if (toArea.owner === block.owner) {
-            toArea.virusCount += mv;
-            if (toArea.virusCount > MAX_VIRUS_COUNT) {
-              toArea.virusCount = MAX_VIRUS_COUNT;
-            }
-          } else if (toArea.owner === 'neutral') {
-            if (mv > toArea.virusCount) {
-              toArea.owner = block.owner;
-              toArea.virusCount = mv - toArea.virusCount;
-            } else if (mv === toArea.virusCount) {
-              toArea.owner = 'neutral';
-              toArea.virusCount = 0;
-            } else {
-              toArea.virusCount -= mv;
-            }
-          } else {
-            if (mv > toArea.virusCount) {
-              toArea.owner = block.owner;
-              toArea.virusCount = mv - toArea.virusCount;
-            } else if (mv === toArea.virusCount) {
-              toArea.owner = 'neutral';
-              toArea.virusCount = 0;
-            } else {
-              toArea.virusCount -= mv;
-            }
-          }
-          if (toArea.virusCount > MAX_VIRUS_COUNT) {
-            toArea.virusCount = MAX_VIRUS_COUNT;
-          }
-
-          // ブロック削除
-          attackBlocks.splice(i, 1);
-          i--;
-        }
-      }
-    }
-
-    // ======================
-    //   敵の行動
-    // ======================
-    function enemyAction() {
-      const enemyAreas = areas.filter(a => a.owner === 'enemy' && a.virusCount > 0);
-      enemyAreas.forEach(area => {
-        const neighbors = connections
-          .filter(conn => conn.includes(area.id))
-          .map(conn => conn[0] === area.id ? conn[1] : conn[0])
-          .map(id => areas.find(a => a.id === id));
-
-        if (!neighbors.length) return;
-
-        let target;
-        if (currentStage <= 5) {
-          // ランダム攻撃
-          target = neighbors[Math.floor(Math.random() * neighbors.length)];
-        } else {
-          // プレイヤーエリアを優先
-          const playerAreas = neighbors.filter(a => a.owner === 'player');
-          if (playerAreas.length > 0) {
-            target = playerAreas.reduce((minA, a) =>
-              (a.virusCount < minA.virusCount ? a : minA), playerAreas[0]);
-          } else {
-            target = neighbors[Math.floor(Math.random() * neighbors.length)];
-          }
-        }
-        if (target && area.virusCount > 0) {
-          const enemyBlocksOnRoute = attackBlocks.filter(
-            b => b.owner === 'enemy' && b.fromArea.id === area.id && b.toArea.id === target.id
-          );
-          if (enemyBlocksOnRoute.length >= 3) return;
-
-          const movingVirus = area.virusCount;
-          if (movingVirus <= 0) return;
-          area.virusCount -= movingVirus;
-
-          createAttackBlock(area, target, movingVirus, 'enemy');
-        }
-      });
-    }
-
-    // ======================
-    //   勝敗判定
-    // ======================
-    function checkGameStatus() {
-      const playerOwned = areas.filter(a => a.owner === 'player').length;
-      const total = areas.length;
-
-      if (playerOwned === 0) {
-        clearInterval(gameInterval);
-        attackBlocks = [];
-        gameOverOverlay.style.display = 'flex';
-      } else if (playerOwned === total) {
-        clearInterval(gameInterval);
-        attackBlocks = [];
-        levelCompleteOverlay.style.display = 'flex';
-      }
-    }
-
-    // ======================
-    //   ゲームループ
-    // ======================
-    function gameLoop() {
-      virusGrowthCounter += 50;
-      enemyActionCounter += 50;
-
-      if (virusGrowthCounter >= 1000) {
-        increaseVirusCounts();
-        virusGrowthCounter = 0;
-      }
-      if (enemyActionCounter >= 1000 && currentStage !== 0) {
-        enemyAction();
-        enemyActionCounter = 0;
-      }
-      updateAttackBlocks();
-      checkGameStatus();
-      drawAreas();
-    }
-
-    // ======================
-    //   ウイルス増殖
-    // ======================
-    function increaseVirusCounts() {
-      areas.forEach(a => {
-        if (a.owner !== 'neutral') {
-          a.virusCount += a.growthRate;
-          if (a.virusCount > MAX_VIRUS_COUNT) {
-            a.virusCount = MAX_VIRUS_COUNT;
-          }
-        }
-      });
-    }
-
-    // ======================
-    //   画面イベント
-    // ======================
-    retryLevelButton.addEventListener('touchend', e => {
-      e.preventDefault();
-      levelCompleteOverlay.style.display = 'none';
-      startStage(currentStage);
-    }, { passive: false });
-    retryLevelButton.addEventListener('click', e => {
-      e.preventDefault();
-      levelCompleteOverlay.style.display = 'none';
-      startStage(currentStage);
-    });
-
-    nextLevelButton.addEventListener('touchend', e => {
-      e.preventDefault();
-      levelCompleteOverlay.style.display = 'none';
-      startStage(currentStage + 1);
-    }, { passive: false });
-    nextLevelButton.addEventListener('click', e => {
-      e.preventDefault();
-      levelCompleteOverlay.style.display = 'none';
-      startStage(currentStage + 1);
-    });
-
-    restartButton.addEventListener('touchend', e => {
-      e.preventDefault();
-      gameOverOverlay.style.display = 'none';
-      initGame();
-    }, { passive: false });
-    restartButton.addEventListener('click', e => {
-      e.preventDefault();
-      gameOverOverlay.style.display = 'none';
-      initGame();
-    });
-
-    retryButton.addEventListener('touchend', e => {
-      e.preventDefault();
-      gameOverOverlay.style.display = 'none';
-      startStage(currentStage);
-    }, { passive: false });
-    retryButton.addEventListener('click', e => {
-      e.preventDefault();
-      gameOverOverlay.style.display = 'none';
-      startStage(currentStage);
-    });
-
-    // 最初の状態を設定
-    window.addEventListener('load', () => {
-      initGame();
-      drawAreas();
-    });
-  </script>
-</body>
-</html>
+    function createAttackBlock(from, to, virusCount, owner) {
+      const dx = to.x - from.x;
+      const dy = to.y - from.
