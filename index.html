@@ -9,8 +9,8 @@
   <style>
     /* 全体のリセット＆画面全体を使う指定 */
     html, body {
-      margin: 0; 
-      padding: 0; 
+      margin: 0;
+      padding: 0;
       width: 100%;
       height: 100%;
       box-sizing: border-box;
@@ -23,8 +23,8 @@
     /* メインコンテナ: 画面全体を覆う */
     #mainContainer {
       position: relative;
-      width: 100vw;
-      height: 100vh;
+      width: 100vw;  /* 画面幅にフィット */
+      height: 100vh; /* 画面高さにフィット */
     }
 
     /* ゲームコンテナ: 同じく画面全体 */
@@ -32,23 +32,24 @@
       position: relative;
       width: 100%;
       height: 100%;
-      /* ボタンが画面範囲外にならないよう、デフォルトではoverflow: visible; でもOK */
       overflow: visible;
     }
 
-    /* キャンバス: アスペクト比(4:3)を維持しながら
-       画面内に常にフィットするように object-fit: contain を使う。
-       pointer-events: none; は不要。Canvasへのタップを取る必要があるため。 */
+    /* キャンバス: アスペクト比(16:9)を維持しながら画面内に常にフィットする。
+       width="960" height="540" で内部解像度を16:9に固定。
+       object-fit: contain で実際の画面領域内に収める。 */
     #gameCanvas {
       display: block;
       width: 100%;
       height: 100%;
       background-color: #fff;
       border: 1px solid #ccc;
-      object-fit: contain; /* 画面サイズに収まるよう自動調整(縦持ち/横持ち両方) */
+      object-fit: contain;
+      /* 余白の位置を中央に */
+      object-position: 50% 50%;
     }
 
-    /* オーバーレイ (スタート画面・ゲームオーバー等) は画面全体を覆う */
+    /* オーバーレイ (スタート/クリア/ゲームオーバー画面) */
     .overlay {
       position: absolute;
       top: 0; 
@@ -57,13 +58,11 @@
       height: 100%;
       background-color: rgba(0, 0, 0, 0.7);
       display: none;
-      /* 縦スクロール要らないように hidden */
       overflow: hidden;
     }
 
     .content {
       position: relative;
-      /* 中央に配置するためにflexboxを使うなどの方法もあり */
       width: 80%;
       max-width: 600px; 
       margin: 5% auto 0; 
@@ -105,8 +104,8 @@
 <body>
   <div id="mainContainer">
     <div id="gameContainer">
-      <!-- キャンバス: 内部解像度800x600 はゲーム内で固定 -->
-      <canvas id="gameCanvas" width="800" height="600"></canvas>
+      <!-- キャンバス: 内部解像度960×540(16:9) -->
+      <canvas id="gameCanvas" width="960" height="540"></canvas>
 
       <!-- スタート画面 -->
       <div id="startScreen" class="overlay">
@@ -160,10 +159,10 @@
       // index 0 → 「ステージ1: チュートリアル」
       {
         areas: [
-          { id: 1, x: 200, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
-          { id: 2, x: 400, y: 200, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 3, x: 400, y: 400, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 4, x: 600, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 1, x: 200, y: 270, owner: 'player', virusCount: 10, growthRate: 1 },
+          { id: 2, x: 480, y: 180, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 3, x: 480, y: 360, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 4, x: 760, y: 270, owner: 'neutral', virusCount: 5, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -172,16 +171,16 @@
           [3, 4],
         ],
       },
-      // 以下、ステージ2〜10 (同内容は前回と変わらず)
+      // 以下、ステージ2〜10 (内部座標も16:9に合わせて微調整推奨)
       {
         areas: [
-          { id: 1, x: 100, y: 300, owner: 'player', virusCount: 10, growthRate: 1 },
-          { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 5, x: 550, y: 150, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 6, x: 550, y: 450, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 10, growthRate: 1 },
+          { id: 1, x: 100, y: 270, owner: 'player', virusCount: 10, growthRate: 1 },
+          { id: 2, x: 240, y: 130, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 3, x: 240, y: 410, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 4, x: 400, y: 270, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 5, x: 560, y: 130, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 6, x: 560, y: 410, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 7, x: 720, y: 270, owner: 'enemy', virusCount: 10, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -197,12 +196,12 @@
       {
         areas: [
           { id: 1, x: 100, y: 100, owner: 'player', virusCount: 15, growthRate: 1 },
-          { id: 2, x: 100, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 2, x: 100, y: 440, owner: 'neutral', virusCount: 5, growthRate: 1 },
           { id: 3, x: 400, y: 100, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 5, growthRate: 1 },
-          { id: 5, x: 400, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 4, x: 400, y: 270, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 5, x: 400, y: 440, owner: 'neutral', virusCount: 5, growthRate: 1 },
           { id: 6, x: 700, y: 100, owner: 'enemy', virusCount: 15, growthRate: 1 },
-          { id: 7, x: 700, y: 500, owner: 'neutral', virusCount: 5, growthRate: 1 },
+          { id: 7, x: 700, y: 440, owner: 'neutral', virusCount: 5, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -218,14 +217,14 @@
       },
       {
         areas: [
-          { id: 1, x: 400, y: 50, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 2, x: 250, y: 150, owner: 'player', virusCount: 20, growthRate: 1 },
-          { id: 3, x: 550, y: 150, owner: 'enemy', virusCount: 20, growthRate: 1 },
-          { id: 4, x: 400, y: 250, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 5, x: 250, y: 350, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 6, x: 550, y: 350, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 7, x: 400, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 8, x: 400, y: 550, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 1, x: 480, y:  40, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 2, x: 300, y: 140, owner: 'player', virusCount: 20, growthRate: 1 },
+          { id: 3, x: 660, y: 140, owner: 'enemy', virusCount: 20, growthRate: 1 },
+          { id: 4, x: 480, y: 240, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 5, x: 300, y: 340, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 6, x: 660, y: 340, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 7, x: 480, y: 440, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 8, x: 480, y: 500, owner: 'neutral', virusCount: 5, growthRate: 2 },
         ],
         connections: [
           [1, 2],
@@ -241,13 +240,13 @@
       },
       {
         areas: [
-          { id: 1, x: 150, y: 300, owner: 'player', virusCount: 20, growthRate: 1 },
-          { id: 2, x: 300, y: 150, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 3, x: 300, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 4, x: 450, y: 300, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 5, x: 600, y: 150, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 6, x: 600, y: 450, owner: 'neutral', virusCount: 5, growthRate: 2 },
-          { id: 7, x: 750, y: 300, owner: 'enemy', virusCount: 25, growthRate: 1 },
+          { id: 1, x: 120, y: 270, owner: 'player', virusCount: 20, growthRate: 1 },
+          { id: 2, x: 280, y: 130, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 3, x: 280, y: 410, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 4, x: 440, y: 270, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 5, x: 600, y: 130, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 6, x: 600, y: 410, owner: 'neutral', virusCount: 5, growthRate: 2 },
+          { id: 7, x: 760, y: 270, owner: 'enemy', virusCount: 25, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -262,12 +261,12 @@
       },
       {
         areas: [
-          { id: 1, x: 400, y: 50, owner: 'player', virusCount: 20, growthRate: 1 },
-          { id: 2, x: 200, y: 200, owner: 'enemy', virusCount: 10, growthRate: 2 },
-          { id: 3, x: 600, y: 200, owner: 'neutral', virusCount: 20, growthRate: 2 },
-          { id: 4, x: 400, y: 350, owner: 'neutral', virusCount: 20, growthRate: 1 },
-          { id: 5, x: 200, y: 500, owner: 'enemy', virusCount: 25, growthRate: 1 },
-          { id: 6, x: 600, y: 500, owner: 'player', virusCount: 10, growthRate: 2 },
+          { id: 1, x: 480, y:  40, owner: 'player', virusCount: 20, growthRate: 1 },
+          { id: 2, x: 240, y: 180, owner: 'enemy', virusCount: 10, growthRate: 2 },
+          { id: 3, x: 720, y: 180, owner: 'neutral', virusCount: 20, growthRate: 2 },
+          { id: 4, x: 480, y: 320, owner: 'neutral', virusCount: 20, growthRate: 1 },
+          { id: 5, x: 240, y: 460, owner: 'enemy', virusCount: 25, growthRate: 1 },
+          { id: 6, x: 720, y: 460, owner: 'player', virusCount: 10, growthRate: 2 },
         ],
         connections: [
           [1, 2],
@@ -281,12 +280,12 @@
       {
         areas: [
           { id: 1, x: 100, y: 100, owner: 'player', virusCount: 35, growthRate: 2 },
-          { id: 2, x: 700, y: 100, owner: 'enemy', virusCount: 40, growthRate: 1 },
-          { id: 3, x: 400, y: 200, owner: 'neutral', virusCount: 25, growthRate: 2 },
-          { id: 4, x: 250, y: 350, owner: 'neutral', virusCount: 25, growthRate: 1 },
-          { id: 5, x: 550, y: 350, owner: 'neutral', virusCount: 25, growthRate: 2 },
-          { id: 6, x: 100, y: 500, owner: 'neutral', virusCount: 25, growthRate: 2 },
-          { id: 7, x: 700, y: 500, owner: 'enemy', virusCount: 20, growthRate: 1 },
+          { id: 2, x: 860, y: 100, owner: 'enemy', virusCount: 40, growthRate: 1 },
+          { id: 3, x: 480, y: 180, owner: 'neutral', virusCount: 25, growthRate: 2 },
+          { id: 4, x: 300, y: 300, owner: 'neutral', virusCount: 25, growthRate: 1 },
+          { id: 5, x: 660, y: 300, owner: 'neutral', virusCount: 25, growthRate: 2 },
+          { id: 6, x: 100, y: 460, owner: 'neutral', virusCount: 25, growthRate: 2 },
+          { id: 7, x: 860, y: 460, owner: 'enemy', virusCount: 20, growthRate: 1 },
         ],
         connections: [
           [1, 3],
@@ -299,13 +298,13 @@
       },
       {
         areas: [
-          { id: 1, x: 400, y: 50, owner: 'player', virusCount: 40, growthRate: 1 },
-          { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 3, x: 550, y: 150, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 4, x: 250, y: 350, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 5, x: 550, y: 350, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 6, x: 250, y: 550, owner: 'enemy', virusCount: 25, growthRate: 1 },
-          { id: 7, x: 550, y: 550, owner: 'enemy', virusCount: 25, growthRate: 1 },
+          { id: 1, x: 480, y:  40, owner: 'player', virusCount: 40, growthRate: 1 },
+          { id: 2, x: 300, y: 140, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 3, x: 660, y: 140, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 4, x: 300, y: 300, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 5, x: 660, y: 300, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 6, x: 300, y: 460, owner: 'enemy', virusCount: 25, growthRate: 1 },
+          { id: 7, x: 660, y: 460, owner: 'enemy', virusCount: 25, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -319,13 +318,13 @@
       },
       {
         areas: [
-          { id: 1, x: 100, y: 300, owner: 'player', virusCount: 25, growthRate: 1 },
-          { id: 2, x: 250, y: 150, owner: 'neutral', virusCount: 20, growthRate: 2 },
-          { id: 3, x: 250, y: 450, owner: 'neutral', virusCount: 35, growthRate: 2 },
-          { id: 4, x: 400, y: 300, owner: 'neutral', virusCount: 40, growthRate: 2 },
-          { id: 5, x: 550, y: 150, owner: 'neutral', virusCount: 35, growthRate: 2 },
-          { id: 6, x: 550, y: 450, owner: 'neutral', virusCount: 20, growthRate: 2 },
-          { id: 7, x: 700, y: 300, owner: 'enemy', virusCount: 30, growthRate: 2 },
+          { id: 1, x: 100, y: 270, owner: 'player', virusCount: 25, growthRate: 1 },
+          { id: 2, x: 240, y: 130, owner: 'neutral', virusCount: 20, growthRate: 2 },
+          { id: 3, x: 240, y: 410, owner: 'neutral', virusCount: 35, growthRate: 2 },
+          { id: 4, x: 400, y: 270, owner: 'neutral', virusCount: 40, growthRate: 2 },
+          { id: 5, x: 560, y: 130, owner: 'neutral', virusCount: 35, growthRate: 2 },
+          { id: 6, x: 560, y: 410, owner: 'neutral', virusCount: 20, growthRate: 2 },
+          { id: 7, x: 720, y: 270, owner: 'enemy', virusCount: 30, growthRate: 2 },
         ],
         connections: [
           [1, 2],
@@ -342,12 +341,12 @@
       },
       {
         areas: [
-          { id: 1, x: 400, y: 50, owner: 'player', virusCount: 40, growthRate: 1 },
-          { id: 2, x: 200, y: 200, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 3, x: 600, y: 200, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 4, x: 400, y: 350, owner: 'neutral', virusCount: 30, growthRate: 2 },
-          { id: 5, x: 200, y: 500, owner: 'enemy', virusCount: 35, growthRate: 1 },
-          { id: 6, x: 600, y: 500, owner: 'enemy', virusCount: 35, growthRate: 1 },
+          { id: 1, x: 480, y:  40, owner: 'player', virusCount: 40, growthRate: 1 },
+          { id: 2, x: 200, y: 180, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 3, x: 760, y: 180, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 4, x: 480, y: 320, owner: 'neutral', virusCount: 30, growthRate: 2 },
+          { id: 5, x: 200, y: 460, owner: 'enemy', virusCount: 35, growthRate: 1 },
+          { id: 6, x: 760, y: 460, owner: 'enemy', virusCount: 35, growthRate: 1 },
         ],
         connections: [
           [1, 2],
@@ -409,7 +408,6 @@
     const giveUpButton = document.getElementById('giveUpButton');
     let giveUpState = 'giveUp'; // 'giveUp' or 'restart'
 
-
     // ======================
     //   初期化関数
     // ======================
@@ -425,17 +423,19 @@
     //   ステージ選択
     // ======================
     stageButtons.forEach(button => {
-      button.addEventListener('click', () => {
+      button.addEventListener('touchend', (e) => {
+        e.preventDefault(); // スマホでのダブルタップズームなど防止
         const selectedStage = parseInt(button.getAttribute('data-stage'), 10);
         startScreen.style.display = 'none';
         startStage(selectedStage);
-      });
+      }, { passive: false });
     });
 
     // ======================
     //   Give Up ボタン
     // ======================
-    giveUpButton.addEventListener('click', () => {
+    giveUpButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
       if (giveUpState === 'giveUp') {
         giveUpButton.textContent = 'Restart';
         giveUpButton.style.backgroundColor = '#f00';
@@ -446,7 +446,7 @@
         giveUpState = 'giveUp';
         startStage(currentStage);
       }
-    });
+    }, { passive: false });
 
     // ======================
     //   ステージ開始
@@ -460,7 +460,7 @@
       if (gameInterval) clearInterval(gameInterval);
       virusGrowthCounter = 0;
       enemyActionCounter = 0;
-      // 50msごとにループ
+      // 50msごとにループ (20fps)
       gameInterval = setInterval(gameLoop, 50);
 
       // Give Upボタン表示
@@ -480,7 +480,7 @@
         areas = stageData.areas.map(a => ({ ...a }));
         connections = stageData.connections.map(c => [...c]);
       } else {
-        // もしステージ11以降を作るならここでランダム生成する等
+        // もしステージ11以降を作るなら、ここでランダム生成等の処理を入れる
         areas = [];
         connections = [];
       }
@@ -577,16 +577,26 @@
     }
 
     // ======================
-    //   クリック処理
+    //   タッチ処理
     // ======================
-    canvas.addEventListener('click', function(event) {
+    canvas.addEventListener('touchstart', function(e) {
+      // タッチ時にスクロールしないように
+      e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      // シングルタッチ想定
+      if (e.changedTouches.length === 0) return;
+      const touch = e.changedTouches[0];
+
       const rect = canvas.getBoundingClientRect();
-      const clickX = event.clientX - rect.left;
-      const clickY = event.clientY - rect.top;
+      const tapX = touch.clientX - rect.left;
+      const tapY = touch.clientY - rect.top;
 
       const clickedArea = areas.find(area => {
-        const dx = area.x - clickX;
-        const dy = area.y - clickY;
+        const dx = area.x - tapX;
+        const dy = area.y - tapY;
         return Math.sqrt(dx * dx + dy * dy) < AREA_RADIUS;
       });
 
@@ -612,7 +622,7 @@
         selectedArea = null;
         drawAreas();
       }
-    });
+    }, { passive: false });
 
     // ======================
     //   ウイルス移動 → 攻撃ブロック
@@ -689,6 +699,7 @@
             const dy = block.y - otherBlock.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < 24) {
+              // ウイルス数の差し引き
               if (block.virusCount > otherBlock.virusCount) {
                 block.virusCount -= otherBlock.virusCount;
                 attackBlocks.splice(j, 1);
@@ -850,23 +861,29 @@
     // ======================
     //   イベント設定
     // ======================
-    retryLevelButton.addEventListener('click', () => {
+    retryLevelButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
       levelCompleteOverlay.style.display = 'none';
       startStage(currentStage);
-    });
-    nextLevelButton.addEventListener('click', () => {
+    }, { passive: false });
+
+    nextLevelButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
       levelCompleteOverlay.style.display = 'none';
       startStage(currentStage + 1);
-    });
+    }, { passive: false });
 
-    restartButton.addEventListener('click', () => {
+    restartButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
       gameOverOverlay.style.display = 'none';
       initGame();
-    });
-    retryButton.addEventListener('click', () => {
+    }, { passive: false });
+
+    retryButton.addEventListener('touchend', (e) => {
+      e.preventDefault();
       gameOverOverlay.style.display = 'none';
       startStage(currentStage);
-    });
+    }, { passive: false });
 
     // ゲーム開始
     initGame();
