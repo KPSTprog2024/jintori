@@ -16,15 +16,20 @@
       box-sizing: border-box;
       background-color: #f0f0f0;
       font-family: sans-serif;
-      /* iPhoneでの“下に隙間”や“上に余白”防止のためoverflowをhiddenに */
-      overflow: hidden;
+      /* overflow: hidden;  /* スクロールを無効化しない */
     }
 
     /* メインコンテナ: 画面全体を覆う */
     #mainContainer {
-      position: relative;
-      width: 100vw;  /* 画面幅にフィット */
-      height: 100vh; /* 画面高さにフィット */
+      position: fixed; /* fixedに変更してスクロールに影響されないように */
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden; /* 内部でスクロールを無効化 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* ゲームコンテナ: 同じく画面全体 */
@@ -33,6 +38,9 @@
       width: 100%;
       height: 100%;
       overflow: visible;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* キャンバス: アスペクト比(16:9)を維持しながら画面内に常にフィットする。
@@ -59,13 +67,16 @@
       background-color: rgba(0, 0, 0, 0.7);
       display: none;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .content {
       position: relative;
       width: 80%;
       max-width: 600px; 
-      margin: 5% auto 0; 
+      margin: 0 auto; 
       text-align: center;
       color: #fff;
     }
@@ -75,6 +86,14 @@
       margin: 10px;
       font-size: 1.0rem;
       cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: #fff;
+    }
+
+    button:hover {
+      background-color: #0056b3;
     }
 
     /* Give Up ボタン */
@@ -85,6 +104,15 @@
       z-index: 10;
       padding: 8px 12px;
       font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      background-color: #dc3545;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    #giveUpButton.restart {
+      background-color: #28a745;
     }
 
     /* ステージ選択ボタン */
@@ -98,6 +126,15 @@
       min-width: 90px;
       margin: 5px;
       flex: 0 1 auto;
+      border: none;
+      border-radius: 5px;
+      background-color: #17a2b8;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .stageButton:hover {
+      background-color: #117a8b;
     }
   </style>
 </head>
@@ -108,7 +145,7 @@
       <canvas id="gameCanvas" width="960" height="540"></canvas>
 
       <!-- スタート画面 -->
-      <div id="startScreen" class="overlay" style="display: flex; align-items: center; justify-content: center;">
+      <div id="startScreen" class="overlay">
         <div class="content">
           <h2>陣取りゲームへようこそ！</h2>
           <p>ステージを選択してください：</p>
@@ -391,8 +428,8 @@
     // 攻撃ブロック配列
     let attackBlocks = [];
 
-    // エリアの半径
-    const AREA_RADIUS = 50;
+    // エリアの半径（動的に設定）
+    let AREA_RADIUS = 50;
 
     // 各種カウンター
     let virusGrowthCounter = 0;
@@ -413,10 +450,23 @@
     // ======================
     function initGame() {
       startScreen.style.display = 'flex';
+      levelCompleteOverlay.style.display = 'none';
+      gameOverOverlay.style.display = 'none';
       giveUpButton.style.display = 'none';
       giveUpButton.textContent = 'Give Up';
+      giveUpButton.classList.remove('restart');
       giveUpButton.style.backgroundColor = '';
       giveUpState = 'giveUp';
+      selectedArea = null;
+    }
+
+    // ======================
+    //   スケールと半径の調整
+    // ======================
+    function adjustCanvasAndRadius() {
+      const rect = canvas.getBoundingClientRect();
+      const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+      AREA_RADIUS = 50 * scale; // 基本半径50をスケールに応じて調整
     }
 
     // ======================
@@ -447,22 +497,18 @@
       e.preventDefault();
       if (giveUpState === 'giveUp') {
         giveUpButton.textContent = 'Restart';
-        giveUpButton.style.backgroundColor = '#f00';
+        giveUpButton.classList.add('restart');
         giveUpState = 'restart';
       } else {
         giveUpButton.textContent = 'Give Up';
-        giveUpButton.style.backgroundColor = '';
+        giveUpButton.classList.remove('restart');
         giveUpState = 'giveUp';
         startStage(currentStage);
       }
     }
 
     giveUpButton.addEventListener('touchend', handleGiveUp, { passive: false });
-    giveUpButton.addEventListener('click', (e) => {
-      if (e.type === 'click') {
-        handleGiveUp(e);
-      }
-    });
+    giveUpButton.addEventListener('click', handleGiveUp);
 
     // ======================
     //   ステージ開始
@@ -471,6 +517,7 @@
       currentStage = stageNumber;
       attackBlocks = [];
       setupStage(stageNumber);
+      adjustCanvasAndRadius();
       drawAreas();
 
       if (gameInterval) clearInterval(gameInterval);
@@ -482,7 +529,8 @@
       // Give Upボタン表示
       giveUpButton.style.display = 'block';
       giveUpButton.textContent = 'Give Up';
-      giveUpButton.style.backgroundColor = '';
+      giveUpButton.classList.remove('restart');
+      giveUpButton.style.backgroundColor = '#dc3545';
       giveUpState = 'giveUp';
     }
 
@@ -532,18 +580,19 @@
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.strokeStyle = '#ccc';
+        ctx.lineWidth = 2;
         ctx.stroke();
       });
 
       // 攻撃ブロック描画
       attackBlocks.forEach(block => {
         ctx.beginPath();
-        ctx.arc(block.x, block.y, 12, 0, Math.PI * 2);
+        ctx.arc(block.x, block.y, AREA_RADIUS * 0.24, 0, Math.PI * 2); // 半径をスケールに応じて調整
         ctx.fillStyle = block.owner === 'player' ? 'red' : 'orange';
         ctx.fill();
 
         ctx.fillStyle = 'white';
-        ctx.font = '14px Arial';
+        ctx.font = `${12 * (AREA_RADIUS / 50)}px Arial`; // フォントサイズもスケールに応じて調整
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(block.virusCount, block.x, block.y);
@@ -575,10 +624,10 @@
 
         // ウイルス数・増殖率
         ctx.fillStyle = 'black';
-        ctx.font = '18px Arial';
+        ctx.font = `${18 * (AREA_RADIUS / 50)}px Arial`; // フォントサイズもスケールに応じて調整
         ctx.textAlign = 'center';
-        ctx.fillText(area.virusCount, area.x, area.y + 5);
-        ctx.fillText(`×${area.growthRate}`, area.x, area.y + 30);
+        ctx.fillText(area.virusCount, area.x, area.y + 5 * (AREA_RADIUS / 50));
+        ctx.fillText(`×${area.growthRate}`, area.x, area.y + 30 * (AREA_RADIUS / 50));
       });
     }
 
@@ -674,7 +723,7 @@
       );
       if (playerBlocksOnRoute.length >= 3) return;
 
-      const movingVirus = Math.floor(fromArea.virusCount / 2); // 移動するウイルス数を半分に変更
+      const movingVirus = fromArea.virusCount; // 全て移動
       if (movingVirus <= 0) return;
       fromArea.virusCount -= movingVirus;
 
@@ -834,7 +883,7 @@
           );
           if (enemyBlocksOnRoute.length >= 3) return;
 
-          const movingVirus = Math.floor(area.virusCount / 2); // 移動するウイルス数を半分に変更
+          const movingVirus = area.virusCount; // 全て移動
           if (movingVirus <= 0) return;
           area.virusCount -= movingVirus;
           createAttackBlock(area, targetArea, movingVirus, 'enemy');
@@ -852,11 +901,11 @@
       if (playerOwned === 0) {
         clearInterval(gameInterval);
         attackBlocks = [];
-        gameOverOverlay.style.display = 'block';
+        gameOverOverlay.style.display = 'flex';
       } else if (playerOwned === totalAreas) {
         clearInterval(gameInterval);
         attackBlocks = [];
-        levelCompleteOverlay.style.display = 'block';
+        levelCompleteOverlay.style.display = 'flex';
       }
     }
 
@@ -946,8 +995,27 @@
       startStage(currentStage);
     });
 
+    // Prevent default scrolling behavior while touching the game area
+    document.body.addEventListener('touchmove', function(e) {
+      if (!e.target.closest('#gameContainer') && !e.target.closest('.overlay')) {
+        // Allow scrolling outside the game area and overlays
+        return;
+      }
+      e.preventDefault();
+    }, { passive: false });
+
     // ゲーム開始
-    initGame();
+    window.addEventListener('load', () => {
+      initGame();
+      adjustCanvasAndRadius();
+      drawAreas();
+    });
+
+    // 調整が必要な場合にリサイズ時にも対応
+    window.addEventListener('resize', () => {
+      adjustCanvasAndRadius();
+      drawAreas();
+    });
   </script>
 </body>
 </html>
