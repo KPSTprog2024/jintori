@@ -90,6 +90,7 @@
       border-radius: 5px;
       background-color: #007BFF;
       color: #fff;
+      transition: background-color 0.3s;
     }
 
     button:hover {
@@ -109,10 +110,15 @@
       background-color: #dc3545;
       color: #fff;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     #giveUpButton.restart {
       background-color: #28a745;
+    }
+
+    #giveUpButton:hover {
+      background-color: #c82333;
     }
 
     /* ステージ選択ボタン */
@@ -131,10 +137,26 @@
       background-color: #17a2b8;
       color: #fff;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
 
     .stageButton:hover {
       background-color: #117a8b;
+    }
+
+    /* Responsive adjustments */
+    @media (orientation: portrait) {
+      #gameContainer {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    @media (orientation: landscape) {
+      #gameContainer {
+        width: 100%;
+        height: 100%;
+      }
     }
   </style>
 </head>
@@ -430,6 +452,7 @@
 
     // エリアの半径（動的に設定）
     let AREA_RADIUS = 50;
+    const MIN_AREA_RADIUS = 20; // 最小半径
 
     // 各種カウンター
     let virusGrowthCounter = 0;
@@ -455,7 +478,7 @@
       giveUpButton.style.display = 'none';
       giveUpButton.textContent = 'Give Up';
       giveUpButton.classList.remove('restart');
-      giveUpButton.style.backgroundColor = '';
+      giveUpButton.style.backgroundColor = '#dc3545';
       giveUpState = 'giveUp';
       selectedArea = null;
     }
@@ -466,7 +489,7 @@
     function adjustCanvasAndRadius() {
       const rect = canvas.getBoundingClientRect();
       const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
-      AREA_RADIUS = 50 * scale; // 基本半径50をスケールに応じて調整
+      AREA_RADIUS = Math.max(50 * scale, MIN_AREA_RADIUS); // 最小半径を設定
     }
 
     // ======================
@@ -559,7 +582,7 @@
 
       // ステージ番号表示
       ctx.fillStyle = 'black';
-      ctx.font = '24px Arial';
+      ctx.font = `${24 * (AREA_RADIUS / 50)}px Arial`;
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(`ステージ ${currentStage}`, 10, 10);
@@ -592,7 +615,7 @@
         ctx.fill();
 
         ctx.fillStyle = 'white';
-        ctx.font = `${12 * (AREA_RADIUS / 50)}px Arial`; // フォントサイズもスケールに応じて調整
+        ctx.font = `${14 * (AREA_RADIUS / 50)}px Arial`; // フォントサイズもスケールに応じて調整
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(block.virusCount, block.x, block.y);
